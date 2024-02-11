@@ -24,7 +24,18 @@ nfpms:
       - deb
       - rpm
       - apk
-
+dockers:
+  - image_templates: ["ghcr.io/tokinaa/warpcast-tools:{{ .Version }}"]
+    dockerfile: Dockerfile
+    build_flag_templates:
+      - --label=org.opencontainers.image.title={{ .ProjectName }}
+      - --label=org.opencontainers.image.description={{ .ProjectName }}
+      - --label=org.opencontainers.image.url=https://github.com/tokinaa/warpcast-tools
+      - --label=org.opencontainers.image.source=https://github.com/tokinaa/warpcast-tools
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
 builds:
   - env:
       - CGO_ENABLED=0
@@ -52,5 +63,5 @@ changelog:
   sort: asc
   filters:
     exclude:
-      - "^docs:"
+      - "^doc`s:"
       - "^test:"
