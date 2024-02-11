@@ -21,3 +21,5 @@ This is a collection of tools for the Warpcast project. The tools are written in
 
 # License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+Thanks to [Goreleaser](https://goreleaser.com/) for the awesome release tool.
