@@ -17,6 +17,8 @@ This is a collection of tools for the Warpcast project. The tools are written in
 # How to Use
 1. Run the compiled binary
 2. Follow the instructions
+3. Rename `example.config.json` to `config.json`
+4. Arrange the configuration file according to your needs
 3. Done
 
 # License
