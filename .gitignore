@@ -1,0 +1,5 @@
+
+dist/
+config.json
+go.sum
+.idea/

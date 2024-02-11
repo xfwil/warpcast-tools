@@ -7,6 +7,7 @@ import (
 	"github.com/tokinaa/warpcast-tools/warpcast"
 	"math/rand"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -297,6 +298,84 @@ func autoTimeline() {
 	}
 }
 
+func followTarget() {
+	fmt.Print("\033[H\033[2J")
+
+	fmt.Println("Follow Following/Followers Target")
+	fmt.Println()
+
+	inputSelectAccount := 0
+	inputSelectAccountError := survey.AskOne(&survey.Select{
+		Message: "Select Account:",
+		Options: myConfig.Accounts,
+	}, &inputSelectAccount, survey.WithValidator(survey.Required))
+
+	checkingError(inputSelectAccountError)
+
+	inputTargetUsername := ""
+	inputTargetUsernameError := survey.AskOne(&survey.Input{
+		Message: "Target Username:",
+	}, &inputTargetUsername, survey.WithValidator(survey.Required))
+
+	checkingError(inputTargetUsernameError)
+
+	inputChoiceMode := ""
+	inputChoiceModeError := survey.AskOne(&survey.Select{
+		Message: "Select Mode:",
+		Options: []string{"Following", "Followers"},
+	}, &inputChoiceMode, survey.WithValidator(survey.Required))
+
+	checkingError(inputChoiceModeError)
+
+	fmt.Println()
+
+	fmt.Printf("[%s] Getting Data of @%s...\n", inputChoiceMode, inputTargetUsername)
+
+	profile, err := warpcast.GetProfile(myConfig.Accounts[inputSelectAccount], inputTargetUsername)
+	if err != nil {
+		fmt.Printf("[PROFILE][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	fmt.Printf("[%s] [@%s] FID : %d | Followers : %d | Following : %d\n", inputChoiceMode, inputTargetUsername, profile.Result.User.Fid, profile.Result.User.FollowerCount, profile.Result.User.FollowingCount)
+	fmt.Println()
+
+	var cursor string = ""
+	for {
+		fidStr := strconv.Itoa(profile.Result.User.Fid)
+		tryToGetFollowersOrFollowing, err := warpcast.GetProfileInformation(strings.ToLower(inputChoiceMode), myConfig.Accounts[inputSelectAccount], fidStr, cursor)
+		if err != nil {
+			fmt.Printf("[GET DATA][%s] FAILED TO GET DATA | ERROR : %s\n", inputChoiceMode, err)
+			continue
+		}
+		for _, item := range tryToGetFollowersOrFollowing.Result.Users {
+			fidTarget := strconv.Itoa(item.Fid)
+			fmt.Printf("[%s] [@%s] FID : %s", inputChoiceMode, item.Username, fidTarget)
+
+			if item.ViewerContext.Following {
+				fmt.Printf(" SKIP YOU ALREADY FOLLOW !\n")
+				continue
+			}
+
+			_, err := warpcast.Follow(myConfig.Accounts[inputSelectAccount], fidTarget)
+			if err != nil {
+				fmt.Printf(" ERROR : %s\n", err)
+			} else {
+				fmt.Printf(" SUCCESS\n")
+			}
+
+			delayFollow := time.Duration(myConfig.DelayFollow) * time.Millisecond
+			time.Sleep(delayFollow)
+		}
+
+		if tryToGetFollowersOrFollowing.Next.Cursor == "" {
+			break
+		}
+
+		cursor = tryToGetFollowersOrFollowing.Next.Cursor
+	}
+}
+
 func main() {
 	fmt.Println("Warpcast Tools")
 	fmt.Println("Author : @x0xdead / Wildaann")
@@ -316,6 +395,9 @@ func main() {
 	switch inputMenu {
 	case "1":
 		multiAccountsManagement()
+		break
+	case "2":
+		followTarget()
 		break
 	case "3":
 		autoTimeline()
