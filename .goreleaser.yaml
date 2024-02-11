@@ -15,19 +15,6 @@ before:
     # you may remove this if you don't need go generate
     - go generate ./...
 
-dockers:
-  - image_templates: [ "ghcr.io/warpcast-tools/example:{{ .Version }}" ]
-    dockerfile: Dockerfile
-    build_flag_templates:
-      - --label=org.opencontainers.image.title={{ .ProjectName }}
-      - --label=org.opencontainers.image.description={{ .ProjectName }}
-      - --label=org.opencontainers.image.url=https://github.com/tokinaa/warpcast-tools
-      - --label=org.opencontainers.image.source=https://github.com/tokinaa/warpcast-tools
-      - --label=org.opencontainers.image.version={{ .Version }}
-      - --label=org.opencontainers.image.created={{ time "2006-01-02T15:04:05Z07:00" }}
-      - --label=org.opencontainers.image.revision={{ .FullCommit }}
-      - --label=org.opencontainers.image.licenses=MIT
-
 nfpms:
   - maintainer: Tokina <tokinaa@sikuder.dev>
     description: Warpcast Tools
