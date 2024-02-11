@@ -1,0 +1,13 @@
+{
+  "accounts": [],
+  "delayFollow": 1000,
+  "delayLike": 500,
+  "delayComment": 700,
+  "delayRecast": 800,
+  "delayTimeline": 3000,
+  "customCommentText": [
+    "LFG !",
+    "Nice one !",
+    "Great post !"
+  ]
+}
