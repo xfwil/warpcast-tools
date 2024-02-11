@@ -2,7 +2,6 @@ package warpcast
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -402,11 +401,6 @@ func GetFeedsItems(accessToken string, feedKey string, lastTimestamp int64, excl
 	if err != nil {
 		return &GetFeedsItemsResponse{}, err
 	}
-
-	fmt.Println()
-	statusCode := res.StatusCode
-	fmt.Println(statusCode)
-	fmt.Println()
 
 	var getFeedsItems GetFeedsItemsResponse
 	err = json.Unmarshal(body, &getFeedsItems)
