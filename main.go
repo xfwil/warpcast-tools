@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/tokinaa/warpcast-tools/degen"
 	"github.com/tokinaa/warpcast-tools/warpcast"
 	"math/rand"
 	"os"
@@ -194,6 +195,42 @@ func autoTimeline() {
 	checkingError(inputChoiceTimelineError)
 
 	fmt.Println()
+	fmt.Println("[PROFILE] Getting my address...")
+
+	myProfile, err := warpcast.GetMyProfile(myConfig.Accounts[inputSelectAccount])
+	if err != nil {
+		fmt.Printf("[PROFILE][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	fidStr := strconv.Itoa(myProfile.Result.State.User.Fid)
+	myAddress, err := warpcast.GetAddressVerified(myConfig.Accounts[inputSelectAccount], fidStr)
+	if err != nil {
+		fmt.Printf("[ADDRESS][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	fmt.Printf("[PROFILE] [@%s] FID : %s | Address : %s\n", myProfile.Result.State.User.Username, fidStr, myAddress.Result.Verifications[0].Address)
+
+	myPoints, err := degen.GetPoints(myAddress.Result.Verifications[0].Address)
+	if err != nil {
+		fmt.Printf("[DEGEN] [POINTS][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	fmt.Printf("[DEGEN] [PROFILE] Points : %s ", myPoints[0].Points)
+
+	myAllowance, err := degen.GetTipAllowance(myAddress.Result.Verifications[0].Address)
+	if err != nil {
+		fmt.Printf("[DEGEN] [ALLOWANCE][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	remainingAllowance, _ := strconv.Atoi(myAllowance[0].RemainingAllowance)
+
+	fmt.Printf("| Allowance : %s | Remaining Allowance : %s\n", myAllowance[0].TipAllowance, myAllowance[0].RemainingAllowance)
+
+	fmt.Println()
 
 	var excludeHash []string
 	var lastTimestamp int64 = 0
@@ -224,7 +261,6 @@ func autoTimeline() {
 
 			fmt.Printf("[TIMELINE] [%s] ", item.Cast.Hash)
 
-			// Check if Like in inputSelectMode
 			if strings.Contains(strings.Join(inputSelectMode, ","), "Like") {
 				fmt.Printf("[LIKE]")
 
@@ -244,13 +280,12 @@ func autoTimeline() {
 				}
 			}
 
-			// Check if Comment in inputSelectMode
 			if strings.Contains(strings.Join(inputSelectMode, ","), "Comments") {
 				fmt.Printf("[COMMENT]")
 
 				commentText := ""
 				if strings.Contains(item.Cast.Text, "$DEGEN") {
-					randomThreeDigit := rand.Intn(999-100+1) + 100
+					randomThreeDigit := rand.Intn(remainingAllowance-0+1) + 0
 					commentText = fmt.Sprintf("%d $DEGEN", randomThreeDigit)
 				}
 
@@ -266,7 +301,6 @@ func autoTimeline() {
 				fmt.Printf(" ")
 			}
 
-			// Check if Recast in inputSelectMode
 			if strings.Contains(strings.Join(inputSelectMode, ","), "Recast") {
 				fmt.Printf("[RECAST]")
 

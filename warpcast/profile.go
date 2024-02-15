@@ -49,7 +49,7 @@ type GetProfileResponse struct {
 }
 
 func GetProfile(accessToken string, username string) (*GetProfileResponse, error) {
-	url := "https://client.warpcast.com/v2/user-by-username?username=4bar"
+	url := "https://client.warpcast.com/v2/user-by-username?username=" + username
 	method := "GET"
 
 	client := &http.Client{}
@@ -245,4 +245,50 @@ func Unfollow(accessToken string, fid string) (*FollowResponse, error) {
 	}
 
 	return &follow, nil
+}
+
+type GetAddressVerifiedResponse struct {
+	Result struct {
+		Verifications []struct {
+			Fid       int    `json:"fid"`
+			Address   string `json:"address"`
+			Timestamp int64  `json:"timestamp"`
+			Version   string `json:"version"`
+		} `json:"verifications"`
+	} `json:"result"`
+}
+
+func GetAddressVerified(accessToken string, fid string) (*GetAddressVerifiedResponse, error) {
+	url := "https://client.warpcast.com/v2/verifications?fid=" + fid + "&limit=5"
+	method := "GET"
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, nil)
+
+	if err != nil {
+		return &GetAddressVerifiedResponse{}, err
+	}
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+	req.Header.Add("Referer", "https://warpcast.com/")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return &GetAddressVerifiedResponse{}, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return &GetAddressVerifiedResponse{}, err
+	}
+
+	var profile GetAddressVerifiedResponse
+	err = json.Unmarshal(body, &profile)
+	if err != nil {
+		return &GetAddressVerifiedResponse{}, err
+	}
+
+	return &profile, nil
 }
