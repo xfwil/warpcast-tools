@@ -1,6 +1,7 @@
 {
   "accounts": [],
   "delayFollow": 1000,
+  "delayUnfollow": 800,
   "delayLike": 500,
   "delayComment": 700,
   "delayRecast": 800,

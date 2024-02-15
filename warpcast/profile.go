@@ -204,3 +204,45 @@ func Follow(accessToken string, fid string) (*FollowResponse, error) {
 
 	return &follow, nil
 }
+
+func Unfollow(accessToken string, fid string) (*FollowResponse, error) {
+	url := "https://client.warpcast.com/v2/follows"
+	method := "DELETE"
+
+	payload := strings.NewReader(`{"targetFid":` + fid + `}`)
+
+	client := &http.Client{}
+	req, err := http.NewRequest(method, url, payload)
+
+	if err != nil {
+		return &FollowResponse{}, err
+	}
+	req.Header.Add("Authorization", "Bearer "+accessToken)
+	req.Header.Add("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36")
+	req.Header.Add("Content-Type", "application/json; charset=utf-8")
+	req.Header.Add("Referer", "https://warpcast.com/")
+
+	res, err := client.Do(req)
+	if err != nil {
+		return &FollowResponse{}, err
+	}
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return &FollowResponse{}, err
+	}
+
+	statusCode := res.StatusCode
+	if statusCode != 200 {
+		return &FollowResponse{}, errors.New("error")
+	}
+
+	var follow FollowResponse
+	err = json.Unmarshal(body, &follow)
+	if err != nil {
+		return &FollowResponse{}, err
+	}
+
+	return &follow, nil
+}

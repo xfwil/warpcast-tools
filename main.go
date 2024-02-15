@@ -15,6 +15,7 @@ import (
 type ConfigStruct struct {
 	Accounts          []string `json:"accounts"`
 	DelayFollow       int      `json:"delayFollow"`
+	DelayUnfollow     int      `json:"delayUnfollow"`
 	DelayLike         int      `json:"delayLike"`
 	DelayComment      int      `json:"delayComment"`
 	DelayRecast       int      `json:"delayRecast"`
@@ -376,6 +377,69 @@ func followTarget() {
 	}
 }
 
+func unfollowNotFB() {
+	fmt.Print("\033[H\033[2J")
+
+	fmt.Println("Unfollow Who Not Follow Back")
+	fmt.Println()
+
+	inputSelectAccount := 0
+	inputSelectAccountError := survey.AskOne(&survey.Select{
+		Message: "Select Account:",
+		Options: myConfig.Accounts,
+	}, &inputSelectAccount, survey.WithValidator(survey.Required))
+
+	checkingError(inputSelectAccountError)
+
+	fmt.Println()
+	fmt.Printf("[PROFILE] Getting following data\n")
+
+	profile, err := warpcast.GetMyProfile(myConfig.Accounts[inputSelectAccount])
+	if err != nil {
+		fmt.Printf("[PROFILE][GETTER] ERROR : %s\n", err)
+		return
+	}
+
+	fidStr := strconv.Itoa(profile.Result.State.User.Fid)
+
+	fmt.Printf("[%s] [@%s] FID : %s | Followers : %d | Following : %d\n", "PROFILE", profile.Result.State.User.Username, fidStr, profile.Result.State.User.FollowerCount, profile.Result.State.User.FollowingCount)
+	fmt.Println()
+
+	var cursor string = ""
+	for {
+		tryToGetFollowing, err := warpcast.GetProfileInformation("following", myConfig.Accounts[inputSelectAccount], fidStr, cursor)
+		if err != nil {
+			fmt.Printf("[GET DATA][FOLLOWING] FAILED TO GET DATA | ERROR : %s\n", err)
+			continue
+		}
+		for _, item := range tryToGetFollowing.Result.Users {
+			fidTarget := strconv.Itoa(item.Fid)
+			fmt.Printf("[UNFOLLOW] [@%s] FID : %s", item.Username, fidTarget)
+
+			if item.ViewerContext.FollowedBy {
+				fmt.Printf(" SKIP THEY FOLLOW YOU !\n")
+				continue
+			}
+
+			_, err := warpcast.Unfollow(myConfig.Accounts[inputSelectAccount], fidTarget)
+			if err != nil {
+				fmt.Printf(" ERROR : %s\n", err)
+			} else {
+				fmt.Printf(" SUCCESS\n")
+			}
+
+			delayUnfollow := time.Duration(myConfig.DelayUnfollow) * time.Millisecond
+			time.Sleep(delayUnfollow)
+		}
+
+		if tryToGetFollowing.Next.Cursor == "" {
+			break
+		}
+
+		cursor = tryToGetFollowing.Next.Cursor
+	}
+}
+
 func main() {
 	fmt.Println("Warpcast Tools")
 	fmt.Println("Author : @x0xdead / Wildaann")
@@ -383,6 +447,7 @@ func main() {
 	fmt.Println("1. Multi Accounts Management")
 	fmt.Println("2. Follow Target (Followers/Following)")
 	fmt.Println("3. Auto Like, Comment, and Recast Timeline (Home/All-Channels)")
+	fmt.Println("4. Unfollow Who Not Follow Back")
 	fmt.Println()
 
 	inputMenu := ""
@@ -401,6 +466,9 @@ func main() {
 		break
 	case "3":
 		autoTimeline()
+		break
+	case "4":
+		unfollowNotFB()
 		break
 	}
 }
