@@ -204,38 +204,52 @@ func autoTimeline() {
 	}
 
 	fidStr := strconv.Itoa(myProfile.Result.State.User.Fid)
+
+	realAddress := ""
 	myAddress, err := warpcast.GetAddressVerified(myConfig.Accounts[inputSelectAccount], fidStr)
 	if err != nil {
-		fmt.Printf("[ADDRESS][GETTER] ERROR : %s\n", err)
+		fmt.Printf("[ADDRESS] [GETTER] ERROR : %s\n", err)
 		return
 	}
 
-	fmt.Printf("[PROFILE] [@%s] FID : %s | Address : %s\n", myProfile.Result.State.User.Username, fidStr, myAddress.Result.Verifications[0].Address)
+	if len(myAddress.Result.Verifications) < 1 {
+		realAddress = "No Address"
+	} else {
+		realAddress = myAddress.Result.Verifications[0].Address
+	}
 
-	myPoints, err := degen.GetPoints(myAddress.Result.Verifications[0].Address)
+	fmt.Printf("[PROFILE] [@%s] FID : %s | Address : %s\n", myProfile.Result.State.User.Username, fidStr, realAddress)
+
+	myPoints, err := degen.GetPoints(realAddress)
 	if err != nil {
-		fmt.Printf("[DEGEN] [POINTS][GETTER] ERROR : %s\n", err)
+		fmt.Printf("[DEGEN] [POINTS] [GETTER] ERROR : %s\n", err)
 		return
 	}
 
-	fmt.Printf("[DEGEN] [PROFILE] Points : %s ", myPoints[0].Points)
+	realPoints := 0
+	if len(myPoints) != 0 {
+		realPoints, _ = strconv.Atoi(myPoints[0].Points)
+	}
 
-	myAllowance, err := degen.GetTipAllowance(myAddress.Result.Verifications[0].Address)
+	fmt.Printf("[DEGEN] [PROFILE] Points : %d ", realPoints)
+
+	myAllowance, err := degen.GetTipAllowance(realAddress)
 	if err != nil {
-		fmt.Printf("[DEGEN] [ALLOWANCE][GETTER] ERROR : %s\n", err)
+		fmt.Printf("[DEGEN] [ALLOWANCE] [GETTER] ERROR : %s\n", err)
 		return
 	}
 
 	remainingAllowance := 0
-
-	if len(myAllowance) == 0 {
-		fmt.Printf("[DEGEN] [ALLOWANCE] No Allowance\n")
+	if len(myAllowance) != 0 {
+		remainingAllowance, _ = strconv.Atoi(myAllowance[0].RemainingAllowance)
 	}
 
-	convertAllowance, _ := strconv.Atoi(myAllowance[0].RemainingAllowance)
-	remainingAllowance = convertAllowance
+	remainingTipAllowance := 0
+	if len(myAllowance) != 0 {
+		remainingTipAllowance, _ = strconv.Atoi(myAllowance[0].TipAllowance)
+	}
 
-	fmt.Printf("| Allowance : %s | Remaining Allowance : %s\n", myAllowance[0].TipAllowance, myAllowance[0].RemainingAllowance)
+	fmt.Printf("| Allowance : %d | Remaining Allowance : %d\n", remainingTipAllowance, remainingAllowance)
 
 	fmt.Println()
 
@@ -396,9 +410,10 @@ func followTarget() {
 			fmt.Printf("[GET DATA][%s] FAILED TO GET DATA | ERROR : %s\n", inputChoiceMode, err)
 			continue
 		}
-		for _, item := range tryToGetFollowersOrFollowing.Result.Users {
+
+		for index, item := range tryToGetFollowersOrFollowing.Result.Users {
 			fidTarget := strconv.Itoa(item.Fid)
-			fmt.Printf("[%s] [@%s] FID : %s", inputChoiceMode, item.Username, fidTarget)
+			fmt.Printf("%d. [%s] [@%s] FID : %s", index, inputChoiceMode, item.Username, fidTarget)
 
 			if item.ViewerContext.Following {
 				fmt.Printf(" SKIP YOU ALREADY FOLLOW !\n")
@@ -421,6 +436,13 @@ func followTarget() {
 		}
 
 		cursor = tryToGetFollowersOrFollowing.Next.Cursor
+
+		fmt.Println()
+		fmt.Printf("\tWaiting for %ds to get new feeds...\n", myConfig.DelayTimeline/1000)
+		fmt.Println()
+
+		delayTimeline := time.Duration(myConfig.DelayTimeline) * time.Millisecond
+		time.Sleep(delayTimeline)
 	}
 }
 

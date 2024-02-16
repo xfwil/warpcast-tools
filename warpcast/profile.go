@@ -119,7 +119,7 @@ type GetFollowersResponse struct {
 }
 
 func GetProfileInformation(types string, accessToken string, fid string, cursor string) (*GetFollowersResponse, error) {
-	url := "https://client.warpcast.com/v2/" + types + "?fid=" + fid + "&limit=1000&cursor=" + cursor
+	url := "https://client.warpcast.com/v2/" + types + "?fid=" + fid + "&limit=200&cursor=" + cursor
 	method := "GET"
 
 	client := &http.Client{}
