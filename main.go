@@ -226,7 +226,14 @@ func autoTimeline() {
 		return
 	}
 
-	remainingAllowance, _ := strconv.Atoi(myAllowance[0].RemainingAllowance)
+	remainingAllowance := 0
+
+	if len(myAllowance) == 0 {
+		fmt.Printf("[DEGEN] [ALLOWANCE] No Allowance\n")
+	}
+
+	convertAllowance, _ := strconv.Atoi(myAllowance[0].RemainingAllowance)
+	remainingAllowance = convertAllowance
 
 	fmt.Printf("| Allowance : %s | Remaining Allowance : %s\n", myAllowance[0].TipAllowance, myAllowance[0].RemainingAllowance)
 
@@ -289,12 +296,18 @@ func autoTimeline() {
 					commentText = fmt.Sprintf("%d $DEGEN", randomThreeDigit)
 				}
 
-				if commentText != "" {
+				if commentText != "" && remainingAllowance > 0 {
 					_, err := warpcast.Comment(myConfig.Accounts[inputSelectAccount], item.Cast.Hash, commentText)
 					if err != nil {
 						fmt.Printf(" ERROR : %s", err)
 					} else {
 						fmt.Printf(" SUCCESS [%s]", commentText)
+					}
+				} else {
+					if remainingAllowance == 0 {
+						fmt.Printf(" SKIP NO ALLOWANCE")
+					} else {
+						fmt.Printf(" SKIPPED")
 					}
 				}
 
