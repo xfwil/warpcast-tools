@@ -280,7 +280,7 @@ func autoTimeline() {
 				excludeHash = append(excludeHash, item.Cast.Hash[2:10])
 			}
 
-			fmt.Printf("[TIMELINE] [%s] ", item.Cast.Hash)
+			fmt.Printf("[TIMELINE] [https://warpcast.com/%s/%s] ", item.Cast.Author.Username, item.Cast.Hash)
 
 			if strings.Contains(strings.Join(inputSelectMode, ","), "Like") {
 				fmt.Printf("[LIKE]")
@@ -306,23 +306,23 @@ func autoTimeline() {
 
 				commentText := ""
 				if strings.Contains(item.Cast.Text, "$DEGEN") {
-					randomThreeDigit := rand.Intn(remainingAllowance-0+1) + 0
+					randomThreeDigit := rand.Intn(remainingAllowance)
 					commentText = fmt.Sprintf("%d $DEGEN", randomThreeDigit)
 				}
 
-				if commentText != "" && remainingAllowance > 0 {
-					_, err := warpcast.Comment(myConfig.Accounts[inputSelectAccount], item.Cast.Hash, commentText)
-					if err != nil {
-						fmt.Printf(" ERROR : %s", err)
+				if commentText != "" {
+					if remainingAllowance > 0 {
+						_, err := warpcast.Comment(myConfig.Accounts[inputSelectAccount], item.Cast.Hash, commentText)
+						if err != nil {
+							fmt.Printf(" ERROR : %s", err)
+						} else {
+							fmt.Printf(" SUCCESS [%s]", commentText)
+						}
 					} else {
-						fmt.Printf(" SUCCESS [%s]", commentText)
+						fmt.Printf(" SKIP NO ALLOWANCE")
 					}
 				} else {
-					if remainingAllowance == 0 {
-						fmt.Printf(" SKIP NO ALLOWANCE")
-					} else {
-						fmt.Printf(" SKIPPED")
-					}
+					fmt.Printf(" SKIP NO $DEGEN TEXT IN POST")
 				}
 
 				fmt.Printf(" ")
