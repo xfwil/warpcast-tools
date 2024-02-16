@@ -23,7 +23,6 @@ nfpms:
     formats:
       - deb
       - rpm
-      - apk
 dockers:
   - image_templates: ["ghcr.io/tokinaa/warpcast-tools:{{ .Version }}"]
     dockerfile: Dockerfile
