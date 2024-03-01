@@ -22,6 +22,7 @@ type ConfigStruct struct {
 	DelayRecast       int      `json:"delayRecast"`
 	DelayTimeline     int      `json:"delayTimeline"`
 	CustomCommentText []string `json:"customCommentText"`
+	IgnoreUsers       []string `json:"ignoreUsers"`
 }
 
 var (
@@ -45,6 +46,20 @@ func LoadConfig() ConfigStruct {
 }
 
 func init() {
+	if _, err := os.Stat("config.json"); os.IsNotExist(err) {
+		file, _ := json.MarshalIndent(ConfigStruct{
+			Accounts:          []string{},
+			DelayFollow:       1000,
+			DelayUnfollow:     1000,
+			DelayLike:         1000,
+			DelayComment:      1000,
+			DelayRecast:       1000,
+			DelayTimeline:     1000,
+			CustomCommentText: []string{},
+			IgnoreUsers:       []string{},
+		}, "", " ")
+		_ = os.WriteFile("config.json", file, 0644)
+	}
 	openLoadConfig := LoadConfig()
 	myConfig = openLoadConfig
 }
@@ -490,9 +505,15 @@ func unfollowNotFB() {
 				continue
 			}
 
+			// if item.Username in myConfig.IgnoreUsers
+			if strings.Contains(strings.Join(myConfig.IgnoreUsers, ","), strings.ToLower(item.Username)) {
+				fmt.Printf(" SKIP IGNORED USER\n")
+				continue
+			}
+
 			_, err := warpcast.Unfollow(myConfig.Accounts[inputSelectAccount], fidTarget)
 			if err != nil {
-				fmt.Printf(" ERROR : %s\n", err)
+				fmt.Printf(" ERROR : %s\n", err.Error())
 			} else {
 				fmt.Printf(" SUCCESS\n")
 			}

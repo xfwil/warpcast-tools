@@ -12,7 +12,7 @@ type GetPointsResponse struct {
 }
 
 func GetPoints(address string) ([]GetPointsResponse, error) {
-	url := "https://www.degen.tips/api/airdrop2/points?address=" + address
+	url := "https://www.degen.tips/api/airdrop2/season2/points?address=" + address
 	method := "GET"
 
 	client := &http.Client{}

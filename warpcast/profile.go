@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -235,7 +236,7 @@ func Unfollow(accessToken string, fid string) (*FollowResponse, error) {
 
 	statusCode := res.StatusCode
 	if statusCode != 200 {
-		return &FollowResponse{}, errors.New("error")
+		return &FollowResponse{}, errors.New("error | " + string(body) + " | " + strconv.Itoa(statusCode))
 	}
 
 	var follow FollowResponse
